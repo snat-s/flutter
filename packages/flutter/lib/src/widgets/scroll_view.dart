@@ -618,6 +618,43 @@ class CustomScrollView extends ScrollView {
   List<Widget> buildSlivers(BuildContext context) => slivers;
 }
 
+class SliverWrap extends ScrollView {
+
+  const SliverWrap({
+    super.key,
+    super.scrollDirection,
+    super.reverse,
+    super.controller,
+    super.primary,
+    super.physics,
+    super.scrollBehavior,
+    super.shrinkWrap,
+    super.center,
+    super.anchor,
+    super.cacheExtent,
+    this.slivers = const <Widget>[],
+    super.semanticChildCount,
+    super.dragStartBehavior,
+    super.keyboardDismissBehavior,
+    super.restorationId,
+    super.clipBehavior,
+  });
+
+  final List<Widget> slivers;
+
+  @override
+  List<Widget> buildSlivers(BuildContext context) {
+    final MediaQueryData? mediaQuery = MediaQuery.maybeOf(context);
+      if (mediaQuery != null) {
+        print("height: ${mediaQuery.size.height}");
+        print("width: ${mediaQuery.size.width}");
+        return slivers;
+      }
+    return slivers;
+  }
+}
+
+
 /// A [ScrollView] that uses a single child layout model.
 ///
 /// See also:
