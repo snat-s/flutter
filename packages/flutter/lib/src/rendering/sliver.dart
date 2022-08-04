@@ -99,7 +99,7 @@ class SliverConstraints extends Constraints {
     required this.overlap,
     required this.remainingPaintExtent,
     required this.crossAxisExtent, // this are the important ones
-    required this.crossAxisDirection, 
+    required this.crossAxisDirection,
     required this.viewportMainAxisExtent, // this one too
     required this.remainingCacheExtent,
     required this.cacheOrigin,

@@ -763,6 +763,11 @@ class SliverGridDelegateWithWrapping extends SliverGridDelegate {
     final double childCrossAxisExtent = usableCrossAxisExtent / crossAxisCount2;
     final double childMainAxisExtent =
         mainAxisExtent ?? childCrossAxisExtent / childAspectRatio;
+
+    print("Main crossAxisExtent ${constraints.crossAxisExtent}");
+    print("Main MainAxisEctent ${constraints.viewportMainAxisExtent}");
+    print("Child main axis extent $childMainAxisExtent");
+
     return SliverGridDynamicTileLayout(
       crossAxisCount: crossAxisCount2,
       mainAxisStride: sizeOfSliver + mainAxisSpacing, // childMainAxisExtent + mainAxisSpacing,
@@ -1317,6 +1322,7 @@ class RenderDynamicSliverGrid extends RenderSliverMultiBoxAdaptor {
             gridGeometry.getBoxConstraints(constraints),
             parentUsesSize: true,
           );
+          print(child.size);
         }
         trailingChildWithLayout = child;
       }
@@ -1422,5 +1428,24 @@ class RenderDynamicSliverGrid extends RenderSliverMultiBoxAdaptor {
       childManager.setDidUnderflow(true);
     }
     childManager.didFinishLayout();
+  }
+}
+// The model that tracks the current max size of the viewport
+class _sizeOfModel {
+
+  _sizeOfModel({
+    required this.maxSizeOfMainAxis,
+    required this.spaceLeftInCrossAxis
+  });
+
+  double maxSizeOfMainAxis;
+  double spaceLeftInCrossAxis;
+
+  double get biggestMainAxisSliver => maxSizeOfMainAxis;
+  double get leftSpace => spaceLeftInCrossAxis;
+  void setBiggestMainAxisSliver(double newMaxSize) {
+    if (newMaxSize > maxSizeOfMainAxis) {
+      maxSizeOfMainAxis = newMaxSize;
+    }
   }
 }
