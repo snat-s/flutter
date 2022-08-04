@@ -317,6 +317,106 @@ class SliverGridRegularTileLayout extends SliverGridLayout {
   }
 }
 
+class SliverGridDynamicTileLayout extends SliverGridLayout {
+  /// Creates a layout that uses dynamic sized and spaced tiles.
+  ///
+  /// TODO: Try to remove the crossAxisCount
+  /// All of the arguments must not be null and must not be negative. The
+  /// `crossAxisCount` argument must be greater than zero.
+  const SliverGridDynamicTileLayout({
+    required this.crossAxisCount,
+    required this.mainAxisStride,
+    required this.crossAxisStride,
+    required this.childMainAxisExtent,
+    required this.childCrossAxisExtent,
+    required this.reverseCrossAxis,
+    super.layoutType,
+  })  : assert(crossAxisCount != null && crossAxisCount > 0),
+        assert(mainAxisStride != null && mainAxisStride >= 0),
+        assert(crossAxisStride != null && crossAxisStride >= 0),
+        assert(childMainAxisExtent != null && childMainAxisExtent >= 0),
+        assert(childCrossAxisExtent != null && childCrossAxisExtent >= 0),
+        assert(reverseCrossAxis != null);
+
+  /// The number of children in the cross axis.
+  final int crossAxisCount;
+
+  /// The number of pixels from the leading edge of one tile to the leading edge
+  /// of the next tile in the main axis.
+  final double mainAxisStride;
+
+  /// The number of pixels from the leading edge of one tile to the leading edge
+  /// of the next tile in the cross axis.
+  final double crossAxisStride;
+
+  /// The number of pixels from the leading edge of one tile to the trailing
+  /// edge of the same tile in the main axis.
+  final double childMainAxisExtent;
+
+  /// The number of pixels from the leading edge of one tile to the trailing
+  /// edge of the same tile in the cross axis.
+  final double childCrossAxisExtent;
+
+  /// Whether the children should be placed in the opposite order of increasing
+  /// coordinates in the cross axis.
+  ///
+  /// For example, if the cross axis is horizontal, the children are placed from
+  /// left to right when [reverseCrossAxis] is false and from right to left when
+  /// [reverseCrossAxis] is true.
+  ///
+  /// Typically set to the return value of [axisDirectionIsReversed] applied to
+  /// the [SliverConstraints.crossAxisDirection].
+  final bool reverseCrossAxis;
+
+  @override
+  int getMinChildIndexForScrollOffset(double scrollOffset) {
+    return mainAxisStride > precisionErrorTolerance
+        ? crossAxisCount * (scrollOffset ~/ mainAxisStride)
+        : 0;
+  }
+
+  @override
+  int getMaxChildIndexForScrollOffset(double scrollOffset) {
+    if (mainAxisStride > 0.0) {
+      final int mainAxisCount = (scrollOffset / mainAxisStride).ceil();
+      return math.max(0, crossAxisCount * mainAxisCount - 1);
+    }
+    return 0;
+  }
+
+  double _getOffsetFromStartInCrossAxis(double crossAxisStart) {
+    // if (reverseCrossAxis) {
+    //   return crossAxisCount * crossAxisStride -
+    //       crossAxisStart -
+    //       childCrossAxisExtent -
+    //       (crossAxisStride - childCrossAxisExtent);
+    // }
+    return crossAxisStart;
+  }
+
+  @override
+  SliverGridGeometry getGeometryForChildIndex(int index, /*
+  double crossAxisStart, // this variable should know where to place the next child in the crossAxis
+  I need the place of the other line if not to put it in another place*/) {
+    final double crossAxisStart = (index % crossAxisCount) * crossAxisStride; // this line decide in wich place it shoud be.
+    final double unrequestedSizeForAxis = double.infinity; // THIS IS THE GREATEST LINE SINCE THE HISTORY OF LINES
+    return SliverGridGeometry(
+      scrollOffset: (index ~/ crossAxisCount) * mainAxisStride,
+      crossAxisOffset: _getOffsetFromStartInCrossAxis(crossAxisStart),
+      mainAxisExtent: unrequestedSizeForAxis, //childMainAxisExtent, this thing in theory makes it take watever size it wants in the mainAxisExtent
+      crossAxisExtent: childCrossAxisExtent,
+    );
+  }
+
+  @override
+  double computeMaxScrollOffset(int childCount) {
+    assert(childCount != null);
+    final int mainAxisCount = ((childCount - 1) ~/ crossAxisCount) + 1;
+    final double mainAxisSpacing = mainAxisStride - childMainAxisExtent;
+    return mainAxisStride * mainAxisCount - mainAxisSpacing;
+  }
+}
+
 /// Controls the layout of tiles in a grid.
 ///
 /// Given the current constraints on the grid, a [SliverGridDelegate] computes
@@ -437,7 +537,7 @@ class SliverGridDelegateWithFixedCrossAxisCount extends SliverGridDelegate {
   /// The size of the crossAxisExtent
   final int maxCrossAxisExtent;
 
-  
+
   bool _debugAssertIsValid() {
     assert(crossAxisCount > 0);
     assert(mainAxisSpacing >= 0.0);
@@ -641,7 +741,7 @@ class SliverGridDelegateWithWrapping extends SliverGridDelegate {
   /// The size of the crossAxisExtent
   final int maxCrossAxisExtent;
 
-    
+
   bool _debugAssertIsValid() {
     assert(crossAxisCount > 0);
     assert(mainAxisSpacing >= 0.0);
@@ -654,16 +754,16 @@ class SliverGridDelegateWithWrapping extends SliverGridDelegate {
   SliverGridLayout getLayout(SliverConstraints constraints) {
     assert(_debugAssertIsValid());
 
-     final int crossAxisCount2 = (constraints.crossAxisExtent / (maxCrossAxisExtent + crossAxisSpacing)).floor();
+    final int crossAxisCount2 = (constraints.crossAxisExtent / (maxCrossAxisExtent + crossAxisSpacing)).floor();
     final double usableCrossAxisExtent = math.max(
       0.0,
       constraints.crossAxisExtent - crossAxisSpacing * (crossAxisCount2 - 1),
     );
-    
+
     final double childCrossAxisExtent = usableCrossAxisExtent / crossAxisCount2;
     final double childMainAxisExtent =
         mainAxisExtent ?? childCrossAxisExtent / childAspectRatio;
-    return SliverGridRegularTileLayout(
+    return SliverGridDynamicTileLayout(
       crossAxisCount: crossAxisCount2,
       mainAxisStride: sizeOfSliver + mainAxisSpacing, // childMainAxisExtent + mainAxisSpacing,
       crossAxisStride: sizeOfSliver + crossAxisSpacing, //childCrossAxisExtent + crossAxisSpacing,
