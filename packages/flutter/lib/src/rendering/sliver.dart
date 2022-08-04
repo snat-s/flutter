@@ -98,9 +98,9 @@ class SliverConstraints extends Constraints {
     required this.precedingScrollExtent,
     required this.overlap,
     required this.remainingPaintExtent,
-    required this.crossAxisExtent,
-    required this.crossAxisDirection,
-    required this.viewportMainAxisExtent,
+    required this.crossAxisExtent, // this are the important ones
+    required this.crossAxisDirection, 
+    required this.viewportMainAxisExtent, // this one too
     required this.remainingCacheExtent,
     required this.cacheOrigin,
   }) : assert(axisDirection != null),
