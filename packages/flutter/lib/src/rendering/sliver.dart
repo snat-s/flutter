@@ -382,19 +382,25 @@ class SliverConstraints extends Constraints {
     double maxExtent = double.infinity,
     double? crossAxisExtent,
   }) {
+    double crossAxisMin = 0.0;
+    double crossAxisMax = 0.0;
+    if (crossAxisExtent != null && crossAxisExtent.isInfinite) {
+      crossAxisMin = 0.0;
+      crossAxisMax = double.infinity;
+    }
     crossAxisExtent ??= this.crossAxisExtent;
     switch (axis) {
       case Axis.horizontal:
         return BoxConstraints(
-          minHeight: crossAxisExtent,
-          maxHeight: crossAxisExtent,
+          minHeight: crossAxisMin,
+          maxHeight: crossAxisMax,
           minWidth: minExtent,
           maxWidth: maxExtent,
         );
       case Axis.vertical:
         return BoxConstraints(
-          minWidth: crossAxisExtent,
-          maxWidth: crossAxisExtent,
+          minWidth: crossAxisMin,
+          maxWidth: crossAxisMax,
           minHeight: minExtent,
           maxHeight: maxExtent,
         );
