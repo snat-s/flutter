@@ -430,10 +430,11 @@ class SliverGridDynamicTileLayout extends SliverGridLayout {
     );
     }
     print("This is the current size used: ${model.currentSizeUsed} and the crossAxisStart $crossAxisStart");
-
+    print((index ~/ crossAxisCount) * mainAxisStride);
+    print(model.scrollOffset);
     return SliverGridGeometry(
-      scrollOffset: (index ~/ crossAxisCount) * mainAxisStride, // model.scrollOffset,
-      crossAxisOffset: model.spaceLeftInCrossAxis, // model.crossAxisOffset,
+      scrollOffset: model.scrollOffset+10,
+      crossAxisOffset: model.spaceLeftInCrossAxis+10, // model.crossAxisOffset,
       mainAxisExtent: childSize.height,
       crossAxisExtent: childSize.width,
     );
@@ -1468,12 +1469,14 @@ class _RunMetrics {
     required this.spaceLeftInCrossAxis,
     required this.childCount,
     this.currentSizeUsed = 0.0,
+    this.scrollOffset = 0.0,
   });
 
   double mainAxisExtent;
   double crossAxisExtent;
   double spaceLeftInCrossAxis;
   double currentSizeUsed;
+  double scrollOffset;
   int childCount;
 
   void setBiggestMainAxisSliver(double newMaxSize) {
@@ -1486,6 +1489,8 @@ class _RunMetrics {
   final double addedSize = currentSizeUsed + sizeToAdd;
     if (addedSize > crossAxisExtent) {
       currentSizeUsed = 0.0;
+      scrollOffset += mainAxisExtent;
+      mainAxisExtent = 0.0;
     } else {
      currentSizeUsed = addedSize;
     }
