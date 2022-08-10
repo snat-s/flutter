@@ -320,17 +320,23 @@ class SliverGridRegularTileLayout extends SliverGridLayout {
   }
 }
 
+/// A [SliverGridLayout] that uses dynamically sized tiles.
+///
+/// Rather that providing a grid with a [SliverGridLayout] directly, you instead
+/// provide the grid a [SliverGridDelegate], which can compute a
+/// [SliverGridLayout] given the current [SliverConstraints].
+///
+/// This layout is used by [SliverGridDelegateWithWrapping].
+/// TODO(snat-s): Add more documentation
 class SliverGridDynamicTileLayout extends SliverGridLayout {
   /// Creates a layout that uses dynamic sized and spaced tiles.
   ///
-  /// TODO: Try to remove the crossAxisCount
-  /// All of the arguments must not be null and must not be negative. The
-  /// `crossAxisCount` argument must be greater than zero.
+  /// All of the arguments must not be null and must not be negative.
   const SliverGridDynamicTileLayout({
     required this.crossAxisCount,
-    required this.mainAxisStride,
+    this.mainAxisStride = 0.0,
     required this.mainAxisSpacing,
-    required this.crossAxisStride,
+    this.crossAxisStride = 0.0,
     required this.crossAxisSpacing,
     required this.childMainAxisExtent,
     required this.childCrossAxisExtent,
@@ -349,11 +355,15 @@ class SliverGridDynamicTileLayout extends SliverGridLayout {
   /// The number of pixels from the leading edge of one tile to the leading edge
   /// of the next tile in the main axis.
   final double mainAxisStride;
+
+  /// The number of logical pixels between each child along the main axis.
   final double mainAxisSpacing;
 
   /// The number of pixels from the leading edge of one tile to the leading edge
   /// of the next tile in the cross axis.
   final double crossAxisStride;
+
+  /// The number of logical pixels between each child along the cross axis.
   final double crossAxisSpacing;
 
   /// The number of pixels from the leading edge of one tile to the trailing
@@ -375,36 +385,20 @@ class SliverGridDynamicTileLayout extends SliverGridLayout {
   /// the [SliverConstraints.crossAxisDirection].
   final bool reverseCrossAxis;
 
-  @override
-  int getMinChildIndexForScrollOffset(double scrollOffset) {
-    return mainAxisStride > precisionErrorTolerance
-        ? crossAxisCount * (scrollOffset ~/ mainAxisStride)
-        : 0;
-  }
-
-  @override
-  int getMaxChildIndexForScrollOffset(double scrollOffset) {
-    if (mainAxisStride > 0.0) {
-      final int mainAxisCount = (scrollOffset / mainAxisStride).ceil();
-      return math.max(0, crossAxisCount * mainAxisCount - 1);
-    }
-    return 0;
-  }
 
   double _getOffsetFromStartInCrossAxis(double crossAxisStart) {
-    if (reverseCrossAxis) {
-      return crossAxisCount * crossAxisStride -
-          crossAxisStart -
-          childCrossAxisExtent -
-          (crossAxisStride - childCrossAxisExtent);
-    }
+    // if (reverseCrossAxis) {
+    //   return crossAxisCount * crossAxisStride -
+    //       crossAxisStart -
+    //       childCrossAxisExtent -
+    //       (crossAxisStride - childCrossAxisExtent);
+    // }
     return crossAxisStart;
   }
 
   @override
   SliverGridGeometry getGeometryForChildIndex(int index) {
-    final double crossAxisStart = (index % crossAxisCount) *
-        crossAxisStride; // this line decide in wich place it shoud be.
+    final double crossAxisStart = (index % crossAxisCount) * crossAxisStride; // this line decide in wich place it shoud be.
     return SliverGridGeometry(
       scrollOffset: (index ~/ crossAxisCount) * childMainAxisExtent,
       crossAxisOffset: _getOffsetFromStartInCrossAxis(crossAxisStart),
@@ -414,27 +408,26 @@ class SliverGridDynamicTileLayout extends SliverGridLayout {
   }
 
   // TODO(snat-s): Implement the method to get the actual size.
+  @override
   SliverGridGeometry updateGeometryForChildIndex(int index, Size childSize, _RunMetrics model,) {
-    final crossAxisStart = (index % crossAxisCount) * crossAxisStride;
     /*
       I want the model to actually work with the updateGeometryForChildIndex but
       it seems that currently it does not update a lot of the children
       even though I tell it to change (because obviously I never make logic mistakes).
     */
     if (model.childCount == 10) {
+      final double crossAxisStart = (index % crossAxisCount) * crossAxisStride;
       return SliverGridGeometry(
       scrollOffset: (index ~/ crossAxisCount) * mainAxisStride, // model.scrollOffset,
-      crossAxisOffset: model.spaceLeftInCrossAxis, // model.crossAxisOffset,
+      crossAxisOffset:  _getOffsetFromStartInCrossAxis(crossAxisStart), // model.crossAxisOffset,
       mainAxisExtent: childSize.height,
       crossAxisExtent: childSize.width,
     );
     }
-    print("This is the current size used: ${model.currentSizeUsed} and the crossAxisStart $crossAxisStart");
-    print((index ~/ crossAxisCount) * mainAxisStride);
-    print(model.scrollOffset);
+
     return SliverGridGeometry(
-      scrollOffset: model.scrollOffset+10,
-      crossAxisOffset: model.spaceLeftInCrossAxis+10, // model.crossAxisOffset,
+      scrollOffset: model.scrollOffset,
+      crossAxisOffset: model.spaceLeftInCrossAxis,
       mainAxisExtent: childSize.height,
       crossAxisExtent: childSize.width,
     );
@@ -537,7 +530,6 @@ class SliverGridDelegateWithFixedCrossAxisCount extends SliverGridDelegate {
     this.crossAxisSpacing = 0.0,
     this.childAspectRatio = 1.0,
     this.mainAxisExtent,
-    this.sizeOfSliver = double.infinity,
     this.maxCrossAxisExtent = 0,
     super.layoutType,
   })  : assert(crossAxisCount != null && crossAxisCount > 0),
@@ -563,8 +555,6 @@ class SliverGridDelegateWithFixedCrossAxisCount extends SliverGridDelegate {
   /// If null, [childAspectRatio] is used instead.
   final double? mainAxisExtent;
 
-  /// The ideal size of a Sliver
-  final double sizeOfSliver;
 
   /// The size of the crossAxisExtent
   final int maxCrossAxisExtent;
@@ -723,7 +713,9 @@ class SliverGridDelegateWithMaxCrossAxisExtent extends SliverGridDelegate {
         oldDelegate.mainAxisExtent != mainAxisExtent;
   }
 }
-
+/// TODO(snat-s): Add documentation
+/// A [SliverGridDelegate] that makes it possible to create grids with
+/// variably sized tiles.
 class SliverGridDelegateWithWrapping extends SliverGridDelegate {
   /// Creates a delegate that makes grid layouts with a fixed number of tiles in
   /// the cross axis.
@@ -733,21 +725,16 @@ class SliverGridDelegateWithWrapping extends SliverGridDelegate {
   /// must not be negative. The `crossAxisCount` and `childAspectRatio`
   /// arguments must be greater than zero.
   const SliverGridDelegateWithWrapping({
-    required this.crossAxisCount,
     this.mainAxisSpacing = 0.0,
     this.crossAxisSpacing = 0.0,
     this.childAspectRatio = 1.0,
     this.mainAxisExtent,
-    this.sizeOfSliver = double.infinity,
     this.maxCrossAxisExtent = 0,
     super.layoutType,
   })  : //assert(crossAxisCount != null && crossAxisCount > 0),
         assert(mainAxisSpacing != null && mainAxisSpacing >= 0),
         assert(crossAxisSpacing != null && crossAxisSpacing >= 0),
         assert(childAspectRatio != null && childAspectRatio > 0);
-
-  /// The number of children in the cross axis.
-  final int crossAxisCount;
 
   /// The number of logical pixels between each child along the main axis.
   final double mainAxisSpacing;
@@ -764,14 +751,10 @@ class SliverGridDelegateWithWrapping extends SliverGridDelegate {
   /// If null, [childAspectRatio] is used instead.
   final double? mainAxisExtent;
 
-  /// The ideal size of a Sliver
-  final double sizeOfSliver;
-
   /// The size of the crossAxisExtent
   final int maxCrossAxisExtent;
 
   bool _debugAssertIsValid() {
-    //assert(crossAxisCount > 0);
     assert(mainAxisSpacing >= 0.0);
     assert(crossAxisSpacing >= 0.0);
     assert(childAspectRatio > 0.0);
@@ -781,25 +764,11 @@ class SliverGridDelegateWithWrapping extends SliverGridDelegate {
   @override
   SliverGridLayout getLayout(SliverConstraints constraints) {
     assert(_debugAssertIsValid());
-
-    final int crossAxisCount2 =
-        (constraints.crossAxisExtent / (maxCrossAxisExtent + crossAxisSpacing))
-            .floor();
-    final double usableCrossAxisExtent = math.max(
-      0.0,
-      constraints.crossAxisExtent - crossAxisSpacing * (crossAxisCount2 - 1),
-    );
-
-    final double childCrossAxisExtent = usableCrossAxisExtent / crossAxisCount2;
-    final double childMainAxisExtent =
-        mainAxisExtent ?? childCrossAxisExtent / childAspectRatio;
-
+    final int crossAxisCount2 = (constraints.crossAxisExtent / (maxCrossAxisExtent + crossAxisSpacing)).floor();
     return SliverGridDynamicTileLayout(
       crossAxisCount: crossAxisCount2,
-      mainAxisStride: sizeOfSliver, //childMainAxisExtent + ,
-      crossAxisStride: sizeOfSliver, //childCrossAxisExtent + ,
-      childMainAxisExtent: double.infinity, //childMainAxisExtent,
-      childCrossAxisExtent: double.infinity, //childCrossAxisExtent,
+      childMainAxisExtent: double.infinity,
+      childCrossAxisExtent: double.infinity,
       mainAxisSpacing: mainAxisSpacing,
       crossAxisSpacing: crossAxisSpacing,
       reverseCrossAxis: axisDirectionIsReversed(constraints.crossAxisDirection),
@@ -809,8 +778,7 @@ class SliverGridDelegateWithWrapping extends SliverGridDelegate {
 
   @override
   bool shouldRelayout(SliverGridDelegateWithFixedCrossAxisCount oldDelegate) {
-    return oldDelegate.crossAxisCount != crossAxisCount ||
-        oldDelegate.mainAxisSpacing != mainAxisSpacing ||
+    return oldDelegate.mainAxisSpacing != mainAxisSpacing ||
         oldDelegate.crossAxisSpacing != crossAxisSpacing ||
         oldDelegate.childAspectRatio != childAspectRatio ||
         oldDelegate.mainAxisExtent != mainAxisExtent;
