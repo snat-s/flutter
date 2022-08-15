@@ -1921,7 +1921,41 @@ class GridView extends BoxScrollView {
 
   // TODO(DavBot02): GridView.stagger ?
 
-  // TODO(snat-s): GridView.wrap ?
+  // TODO(snat-s): Add docs
+  GridView.wrap({
+    super.key,
+    super.scrollDirection,
+    super.reverse,
+    super.controller,
+    super.primary,
+    super.physics,
+    super.shrinkWrap,
+    super.padding,
+    bool addAutomaticKeepAlives = true,
+    bool addRepaintBoundaries = true,
+    bool addSemanticIndexes = true,
+    double mainAxisSpacing = 0.0,
+    double crossAxisSpacing = 0.0,
+    super.cacheExtent,
+    List<Widget> children = const <Widget>[],
+    int? semanticChildCount,
+    super.dragStartBehavior,
+    super.clipBehavior,
+    super.keyboardDismissBehavior,
+    super.restorationId,
+  }) : gridDelegate = SliverGridDelegateWithWrapping(
+         mainAxisSpacing: mainAxisSpacing,
+         crossAxisSpacing: crossAxisSpacing,
+       ),
+       childrenDelegate = SliverChildListDelegate(
+         children,
+         addAutomaticKeepAlives: addAutomaticKeepAlives,
+         addRepaintBoundaries: addRepaintBoundaries,
+         addSemanticIndexes: addSemanticIndexes,
+       ),
+       super(
+         semanticChildCount: semanticChildCount ?? children.length,
+       );
 
   /// A delegate that controls the layout of the children within the [GridView].
   ///
