@@ -387,7 +387,7 @@ class SliverGridDynamicTileLayout extends SliverGridLayout {
   /// the [SliverConstraints.crossAxisDirection].
   final bool reverseCrossAxis;
 
-  List<_RunMetrics> model = <_RunMetrics>[_RunMetrics(maxSliver: 0.0, currentSizeUsed: 0.0, scrollOffset: 0.0)];
+  final List<_RunMetrics> model = <_RunMetrics>[_RunMetrics(maxSliver: 0.0, currentSizeUsed: 0.0, scrollOffset: 0.0)];
 
   double _getOffsetFromStartInCrossAxis(double crossAxisStart) {
     // if (reverseCrossAxis) {
@@ -726,8 +726,8 @@ class SliverGridDelegateWithMaxCrossAxisExtent extends SliverGridDelegate {
 /// variably sized tiles.
 class SliverGridDelegateWithWrapping extends SliverGridDelegate {
   /// TODO(snat-s): Update this docs.
-  /// Creates a delegate that makes grid layouts with a fixed number of tiles in
-  /// the cross axis.
+  /// Creates a delegate that makes dynamic grid layouts, the children Widgets
+  /// are the ones that decide their own size.
   /// Because the children decide their own size you can only decide two options
   /// right now `mainAxisSpacing` and `crossAxisSpacing`.
   const SliverGridDelegateWithWrapping({
