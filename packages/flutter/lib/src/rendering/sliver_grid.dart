@@ -245,11 +245,11 @@ abstract class SliverGridLayout {
 ///
 /// This layout is used by [SliverGridDelegateWithWrapping].
 /// TODO(snat-s): Add more documentation
-class SliverGridDynamicTileLayout extends SliverGridLayout {
+class SliverGridWrappingTileLayout extends SliverGridLayout {
   /// Creates a layout that uses dynamic sized and spaced tiles.
   ///
   /// All of the arguments must not be null and must not be negative.
-  SliverGridDynamicTileLayout({
+  SliverGridWrappingTileLayout({
     required this.crossAxisCount,
     this.mainAxisStride = 0.0,
     required this.mainAxisSpacing,
@@ -407,7 +407,7 @@ class SliverGridDelegateWithWrapping extends SliverGridDelegate {
   @override
   SliverGridLayout getLayout(SliverConstraints constraints) {
     assert(_debugAssertIsValid());
-    return SliverGridDynamicTileLayout(
+    return SliverGridWrappingTileLayout(
       crossAxisCount: 10,
       childMainAxisExtent: double.infinity,
       childCrossAxisExtent: double.infinity,
