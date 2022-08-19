@@ -332,13 +332,15 @@ class SliverGridWrappingTileLayout extends SliverGridLayout {
   @override
   SliverGridGeometry updateGeometryForChildIndex(int index, Size childSize) {
     final double scrollOffset = model.last.scrollOffset;
-    double currentSizeUsed = model.last.currentSizeUsed;
+    final double currentSizeUsed = model.last.currentSizeUsed;
 
     if (childSize.height > model.last.maxSliver) {
       model.last.maxSliver = childSize.height;
     }
+
     final double addedSize = currentSizeUsed + childSize.width;
-    if (addedSize > crossAxisExtent) {
+
+    if (addedSize > crossAxisExtent && model.last.currentSizeUsed > 0.0) {
       model.add(_RunMetrics(maxSliver: 0.0, currentSizeUsed: childSize.width, scrollOffset: scrollOffset+model.last.maxSliver));
       return SliverGridGeometry(
       scrollOffset: model.last.scrollOffset,
@@ -367,7 +369,6 @@ class SliverGridWrappingTileLayout extends SliverGridLayout {
   }
   @override
   bool reachedTargetScrollOffset(double targetOffset) {
-    print(targetOffset);
     if (targetOffset == model.last.currentSizeUsed) {
       return true;
     }
