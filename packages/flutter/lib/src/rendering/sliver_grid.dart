@@ -250,37 +250,22 @@ class SliverGridWrappingTileLayout extends SliverGridLayout {
   ///
   /// All of the arguments must not be null and must not be negative.
   SliverGridWrappingTileLayout({
-    required this.crossAxisCount,
-    this.mainAxisStride = 0.0,
     required this.mainAxisSpacing,
-    this.crossAxisStride = 0.0,
     required this.crossAxisSpacing,
     required this.childMainAxisExtent,
     required this.childCrossAxisExtent,
     required this.reverseCrossAxis,
     required this.crossAxisExtent,
     super.layoutType = SliverGridLayoutType.wrap,
-  })  : assert(crossAxisCount != null && crossAxisCount > 0),
-        assert(childMainAxisExtent != null && childMainAxisExtent >= 0),
+  })  : assert(childMainAxisExtent != null && childMainAxisExtent >= 0),
         assert(childCrossAxisExtent != null && childCrossAxisExtent >= 0),
         assert(reverseCrossAxis != null);
 
   /// The size of the cross axis.
   final double crossAxisExtent;
 
-  /// The number of children in the cross axis.
-  final int crossAxisCount;
-
-  /// The number of pixels from the leading edge of one tile to the leading edge
-  /// of the next tile in the main axis.
-  final double mainAxisStride;
-
   /// The number of logical pixels between each child along the main axis.
   final double mainAxisSpacing;
-
-  /// The number of pixels from the leading edge of one tile to the leading edge
-  /// of the next tile in the cross axis.
-  final double crossAxisStride;
 
   /// The number of logical pixels between each child along the cross axis.
   final double crossAxisSpacing;
@@ -304,13 +289,13 @@ class SliverGridWrappingTileLayout extends SliverGridLayout {
   /// the [SliverConstraints.crossAxisDirection].
   final bool reverseCrossAxis;
 
+  // The model that is used internally to keep track of how much space is left and
+  // how much has been used.
   List<_RunMetrics> model = <_RunMetrics>[_RunMetrics(maxSliver: 0.0, currentSizeUsed: 0.0, scrollOffset: 0.0)];
 
   double _getOffsetFromStartInCrossAxis(double crossAxisStart) {
     // if (reverseCrossAxis) {
-    //   return crossAxisCount * crossAxisStride -
-    //       crossAxisStart -
-    //       childCrossAxisExtent -
+    //   return crossAxisCount * crossAxisStride - crossAxisStart - childCrossAxisExtent -
     //       (crossAxisStride - childCrossAxisExtent);
     // }
     return crossAxisStart;
@@ -333,43 +318,35 @@ class SliverGridWrappingTileLayout extends SliverGridLayout {
   SliverGridGeometry updateGeometryForChildIndex(int index, Size childSize) {
     final double scrollOffset = model.last.scrollOffset;
     final double currentSizeUsed = model.last.currentSizeUsed;
-
-    if (childSize.height > model.last.maxSliver) {
-      model.last.maxSliver = childSize.height;
-    }
-
-    final double addedSize = currentSizeUsed + childSize.width;
+    final double addedSize = currentSizeUsed + childSize.width + crossAxisSpacing;
 
     if (addedSize > crossAxisExtent && model.last.currentSizeUsed > 0.0) {
-      model.add(_RunMetrics(maxSliver: 0.0, currentSizeUsed: childSize.width, scrollOffset: scrollOffset+model.last.maxSliver));
+      model.add(_RunMetrics(maxSliver: childSize.height + mainAxisSpacing, currentSizeUsed: childSize.width + crossAxisSpacing, scrollOffset: scrollOffset+model.last.maxSliver + mainAxisSpacing));
       return SliverGridGeometry(
-      scrollOffset: model.last.scrollOffset,
-      crossAxisOffset: 0.0,
-      mainAxisExtent: childSize.height + mainAxisSpacing,
-      crossAxisExtent: childSize.width + crossAxisSpacing,
-    );
+        scrollOffset: model.last.scrollOffset,
+        crossAxisOffset: 0.0,
+        mainAxisExtent: childSize.height + mainAxisSpacing,
+        crossAxisExtent: childSize.width,
+      );
     } else {
       model.last.currentSizeUsed = addedSize;
+    }
+
+    if (childSize.height + mainAxisSpacing > model.last.maxSliver) {
+      model.last.maxSliver = childSize.height + mainAxisSpacing;
     }
 
     return SliverGridGeometry(
       scrollOffset: scrollOffset,
       crossAxisOffset: currentSizeUsed,
-      mainAxisExtent: childSize.height + mainAxisSpacing,
-      crossAxisExtent: childSize.width + crossAxisSpacing,
+      mainAxisExtent: childSize.height,
+      crossAxisExtent: childSize.width,
     );
   }
 
   @override
-  double computeMaxScrollOffset(int childCount) {
-    assert(childCount != null);
-    final int mainAxisCount = ((childCount - 1) ~/ crossAxisCount) + 1;
-    final double mainAxisSpacing = mainAxisStride - childMainAxisExtent;
-    return mainAxisStride * mainAxisCount - mainAxisSpacing;
-  }
-  @override
   bool reachedTargetScrollOffset(double targetOffset) {
-    if (targetOffset == model.last.currentSizeUsed) {
+    if (model.last.scrollOffset > targetOffset) {
       return true;
     }
     return false;
@@ -409,7 +386,6 @@ class SliverGridDelegateWithWrapping extends SliverGridDelegate {
   SliverGridLayout getLayout(SliverConstraints constraints) {
     assert(_debugAssertIsValid());
     return SliverGridWrappingTileLayout(
-      crossAxisCount: 10,
       childMainAxisExtent: double.infinity,
       childCrossAxisExtent: double.infinity,
       mainAxisSpacing: mainAxisSpacing,
@@ -1320,7 +1296,7 @@ class RenderDynamicSliverGrid extends RenderSliverMultiBoxAdaptor {
       childParentData.layoutOffset = gridGeometry.scrollOffset;
       childParentData.crossAxisOffset = gridGeometry.crossAxisOffset;
       assert(childParentData.index == index);
-      endScrollOffset = childScrollOffset(child!)! + paintExtentOf(child!);
+      endScrollOffset = math.max(childScrollOffset(child!)! + paintExtentOf(child!), endScrollOffset);
       return true;
     }
 
