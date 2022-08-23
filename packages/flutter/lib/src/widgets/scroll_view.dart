@@ -1946,6 +1946,7 @@ class GridView extends BoxScrollView {
   }) : gridDelegate = SliverGridDelegateWithWrapping(
          mainAxisSpacing: mainAxisSpacing,
          crossAxisSpacing: crossAxisSpacing,
+         scrollDirection: scrollDirection,
        ),
        childrenDelegate = SliverChildListDelegate(
          children,
