@@ -1921,7 +1921,15 @@ class GridView extends BoxScrollView {
 
   // TODO(DavBot02): GridView.stagger ?
 
-  // TODO(snat-s): Add docs
+  /// Creates a scrollable, 2D array of widgets with tiles where each tile can
+  /// have its own size.
+  ///
+  /// Uses a [SliverGridDelegateWithWrapping] as the [gridDelegate].
+  ///
+  /// See also:
+  ///
+  ///  * [SliverGridDelegateWithWrapping] to see a more detailed explanation of
+  ///    how the wrapping works.
   GridView.wrap({
     super.key,
     super.scrollDirection,

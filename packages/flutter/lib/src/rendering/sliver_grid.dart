@@ -238,6 +238,7 @@ abstract class SliverGridLayout {
 
 // TODO(DavBot02): YourStaggerLayout extends SliverGridLayout
 
+/// Controls the layout of tiles in a grid.
 /// A [SliverGridLayout] that uses dynamically sized tiles.
 ///
 /// Rather that providing a grid with a [SliverGridLayout] directly, you instead
@@ -297,7 +298,7 @@ class SliverGridWrappingTileLayout extends SliverGridLayout {
 
   /// The model that is used internally to keep track of how much space is left
   /// and how much has been used.
-  List<_RunMetrics> model = <_RunMetrics>[
+  final List<_RunMetrics> model = <_RunMetrics>[
     _RunMetrics(maxSliver: 0.0, currentSizeUsed: 0.0, scrollOffset: 0.0)
   ];
 
