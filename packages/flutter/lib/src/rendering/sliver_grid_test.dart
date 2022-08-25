@@ -309,7 +309,32 @@ void main() {
     // resets the screen to its original size after the test end
     addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
   });
-  // TODO(snat-s): 'Test wrap to see nothing affected if random elements are deleted'
+
+  testWidgets(
+      'Test to see if childMainAxisExtent is respected',
+      (WidgetTester tester) async {
+    final List<Widget> children = List<Widget>.generate(
+      10,
+      (int index) => SizedBox(
+        height: index.isEven ? 100 : 50,
+        width: index.isEven ? 95 : 180,
+        child: Center(child: Text('Item $index')),
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: GridView.wrap(
+            children: children,
+          ),
+        ),
+      ),
+    );
+    for (int i = 0; i < 10; i++) {
+      expect(find.text('Item $i'), findsOneWidget);
+    }
+  });
+  // TODO(snat-s): 'Test wrap to see nothing affected if random elements are deleted'.
 }
 
 Widget textFieldBoilerplate({required Widget child}) {
